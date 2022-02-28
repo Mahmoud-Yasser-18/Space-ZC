@@ -26,11 +26,16 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+def sort_correctly(list_sorted):
+    for idx,n in enumerate(list_sorted):
+        if n[0]!="1":
+            break
+    return list_sorted[idx:]+list_sorted[:idx]
 
-Avail_rooms = json.loads(open("rooms.txt").read())
+Avail_time_rooms = json.loads(open("rooms_3.txt").read())
 try:
-    del Avail_rooms['NaN']
-    del Avail_rooms['Saturday']
+    del Avail_time_rooms['NaN']
+    del Avail_time_rooms['Saturday']
 except:
     pass
 
@@ -42,10 +47,10 @@ bad_rooms = [' Zewail City New Camp, Nano Building, Room',
 
 
 try:
-    for day in Avail_rooms.keys():
+    for day in Avail_time_rooms.keys():
         for bad_r in bad_rooms:
-            if bad_r in Avail_rooms[day].keys():
-                del Avail_rooms[day][bad_r]         
+            if bad_r in Avail_time_rooms[day].keys():
+                del Avail_time_rooms[day][bad_r]         
 except:
     pass
 
@@ -70,10 +75,27 @@ def transpose(list_of_lists):
 def messageHandler(update, context):
     print(str(update.message.text)[-3:])
     if update.message.text in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]:
-        rooms = list(Avail_rooms[update.message.text].keys())
-        rooms=sorted(rooms)
-        rooms = [room.replace(" Zewail City New Camp, ","").replace("Room","").strip()+"\n"+str(update.message.text)[:3] for room in rooms if room !="NaN"]
+        times_slots = list(Avail_time_rooms[update.message.text].keys())
+        times_slots=sort_correctly(sorted(times_slots))
+        times_slots = [times_slot.replace(" Zewail City New Camp, ","").replace("Room","").strip()+"\n"+str(update.message.text)[:3] for times_slot in times_slots if times_slot !="NaN"]
+        times_slots+=["Back to days"]
+        new_times_slots=[[]]
+        for i in range(len(times_slots)):
+            if i%2 ==0:
+                new_times_slots.append([])
+            new_times_slots[-1].append(KeyboardButton(times_slots[i]))
+        
+        buttons = []
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                text="Welcome to my bot!", reply_markup=ReplyKeyboardMarkup(new_times_slots))
+    elif str(update.message.text)[-3:] in ["Sun", "Mon", "Tue", "Wed", "Thu"]:
+        days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
+        day= days[["Sun", "Mon", "Tue", "Wed", "Thu"].index(str(update.message.text)[-3:])]
+        rooms=Avail_time_rooms[day][str(update.message.text)[:-4]]
+        rooms = sort_correctly(sorted(rooms))
+        rooms = [room.replace(" Zewail City New Camp, ","").replace("Room","").strip() for room in rooms if room !="NaN"]
         rooms+=["Back to days"]
+        print(rooms)
         new_rooms=[[]]
         for i in range(len(rooms)):
             if i%2 ==0:
@@ -83,16 +105,15 @@ def messageHandler(update, context):
         buttons = []
         context.bot.send_message(chat_id=update.effective_chat.id,
                                 text="Welcome to my bot!", reply_markup=ReplyKeyboardMarkup(new_rooms))
-    elif str(update.message.text)[-3:] in ["Sun", "Mon", "Tue", "Wed", "Thu"]:
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                        text="Ok!")
 
+        
+        
     else:
         days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
         buttons = [[KeyboardButton(day) for day in days[:3]], [
             KeyboardButton(day) for day in days[3:]]]
         context.bot.send_message(chat_id=update.effective_chat.id,
-                                text="Choose the room!", reply_markup=ReplyKeyboardMarkup(buttons))
+                                text="Chatbot", reply_markup=ReplyKeyboardMarkup(buttons))
         
 def help(update, context):
     """Send a message when the command /help is issued."""
