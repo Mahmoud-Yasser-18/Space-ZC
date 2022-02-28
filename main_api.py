@@ -16,8 +16,6 @@ bot.
 """
 import json
 import logging
-from numpy import sort
-import numpy as np
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 
@@ -50,7 +48,7 @@ try:
     for day in Avail_time_rooms.keys():
         for bad_r in bad_rooms:
             if bad_r in Avail_time_rooms[day].keys():
-                del Avail_time_rooms[day][bad_r]         
+                del Avail_time_rooms[day][bad_r]
 except:
     pass
 
@@ -77,17 +75,17 @@ def messageHandler(update, context):
     if update.message.text in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]:
         times_slots = list(Avail_time_rooms[update.message.text].keys())
         times_slots=sort_correctly(sorted(times_slots))
-        times_slots = [times_slot.replace(" Zewail City New Camp, ","").replace("Room","").strip()+"\n"+str(update.message.text)[:3] for times_slot in times_slots if times_slot !="NaN"]
+        times_slots = [times_slot.strip()+" "+str(update.message.text)[:3] for times_slot in times_slots if times_slot !="NaN"]
         times_slots+=["Back to days"]
         new_times_slots=[[]]
         for i in range(len(times_slots)):
             if i%2 ==0:
                 new_times_slots.append([])
             new_times_slots[-1].append(KeyboardButton(times_slots[i]))
-        
+
         buttons = []
         context.bot.send_message(chat_id=update.effective_chat.id,
-                                text="Welcome to my bot!", reply_markup=ReplyKeyboardMarkup(new_times_slots))
+                                text="Choose the time!", reply_markup=ReplyKeyboardMarkup(new_times_slots))
     elif str(update.message.text)[-3:] in ["Sun", "Mon", "Tue", "Wed", "Thu"]:
         days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
         day= days[["Sun", "Mon", "Tue", "Wed", "Thu"].index(str(update.message.text)[-3:])]
@@ -101,20 +99,20 @@ def messageHandler(update, context):
             if i%2 ==0:
                 new_rooms.append([])
             new_rooms[-1].append(KeyboardButton(rooms[i]))
-        
+
         buttons = []
         context.bot.send_message(chat_id=update.effective_chat.id,
-                                text="Welcome to my bot!", reply_markup=ReplyKeyboardMarkup(new_rooms))
+                                text="Here is your rooms, enjoy!", reply_markup=ReplyKeyboardMarkup(new_rooms))
 
-        
-        
-    else:
+
+
+    elif str(update.message.text) == "Back to days":
         days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
         buttons = [[KeyboardButton(day) for day in days[:3]], [
             KeyboardButton(day) for day in days[3:]]]
         context.bot.send_message(chat_id=update.effective_chat.id,
-                                text="Chatbot", reply_markup=ReplyKeyboardMarkup(buttons))
-        
+                                text="Enjoy", reply_markup=ReplyKeyboardMarkup(buttons))
+
 def help(update, context):
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
@@ -131,7 +129,7 @@ def main():
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
     updater = Updater(
-        "", use_context=True)
+        "5287474250:AAEriEq4X29yVojj5pha-hGOnzV8ZSoE5Iw", use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
